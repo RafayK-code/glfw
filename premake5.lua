@@ -1,109 +1,45 @@
-workspace "Velocity"
-	architecture "x64"
-
-	configurations
-	{
-		"Debug",
-		"Release",
-		"Dist"
-	}
-
-outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
-
-project "Velocity"
-	location "Velocity"
-	kind "SharedLib"
-	language "C++"
-
-	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
-
-	pchheader "vlpch.h"
-	pchsource "Velocity/src/vlpch.cpp"
-
-	files
-	{
-		"%{prj.name}/src/**.h",
-		"%{prj.name}/src/**.cpp"
-	}
-
-	includedirs
-	{
-		"%{prj.name}/src",
-		"%{prj.name}/vendor/spdlog/include"
-	}
-
-	filter "system:windows"
-		cppdialect "C++17"
-		staticruntime "On"
-		systemversion "latest"
-
-		defines
-		{
-			"VL_PLATFORM_WINDOWS",
-			"VL_BUILD_DLL"
-		}
-
-		postbuildcommands
-		{
-			("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. outputdir .. "/ProjectV")
-		}
-
-	filter "configurations:Debug"
-		defines "VL_DEBUG"
-		symbols "On"
-
-	filter "configurations:Release"
-		defines "VL_RELEASE"
-		optimize "On"
-
-	filter "configurations:Dist"
-		defines "VL_DIST"
-		optimize "On"
-
-project "ProjectV"
-	location "ProjectV"
-	kind "ConsoleApp"
-	language "C++"
+project "GLFW"
+	kind "StaticLib"
+	language "C"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
 	files
 	{
-		"%{prj.name}/src/**.h",
-		"%{prj.name}/src/**.cpp"
-	}
-
-	includedirs
-	{
-		"Velocity/vendor/spdlog/include",
-		"Velocity/src"
-	}
-
-	links
-	{
-		"Velocity"
+		"include/GLFW/glfw3.h",
+		"include/GLFW/glfw3native.h",
+		"src/glfw_config.h",
+		"src/context.c",
+		"src/init.c",
+		"src/input.c",
+		"src/monitor.c",
+		"src/vulkan.c",
+		"src/window.c"
 	}
 
 	filter "system:windows"
-		cppdialect "C++17"
-		staticruntime "On"
-		systemversion "latest"
+	buildoptions { "-std=c11", "-lgdi32" }
+	systemversion "latest"
+	staticruntime "On"
 
-		defines
-		{
-			"VL_PLATFORM_WINDOWS",
-		}
+	files
+	{
+		"src/win32_init.c",
+		"src/win32_joystick.c",
+		"src/win32_monitor.c",
+		"src/win32_time.c",
+		"src/win32_thread.c",
+		"src/win32_window.c",
+		"src/wgl_context.c",
+		"src/egl_context.c",
+		"src/osmesa_context.c"
+	}
 
-	filter "configurations:Debug"
-		defines "VL_DEBUG"
-		symbols "On"
-
-	filter "configurations:Release"
-		defines "VL_RELEASE"
-		optimize "On"
-
-	filter "configurations:Dist"
-		defines "VL_DIST"
-		optimize "On"
+	defines
+	{
+	"_GLFW_WIN32",
+	"_CRT_SECURE_NO_WARNINGS"
+	}
+	filter { "system:windows", "configurations:Release" }
+		buildoptions "/MT"
